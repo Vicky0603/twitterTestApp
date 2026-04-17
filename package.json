@@ -1,0 +1,25 @@
+{
+  "name": "twitterTestApp",
+  "version": "1.0.0",
+  "description": "Twitter/X clone challenge built with Node.js, TypeScript, React, and SQLite",
+  "scripts": {
+    "dev:api": "npm run dev --workspace @twitter-clone/api",
+    "dev:web": "npm run dev --workspace @twitter-clone/web",
+    "build": "npm run build --workspaces",
+    "test": "npm run test --workspaces",
+    "lint": "npm run lint --workspaces",
+    "typecheck": "npm run typecheck --workspaces",
+    "db:generate": "npm run db:generate --workspace @twitter-clone/api",
+    "db:migrate": "npm run db:migrate --workspace @twitter-clone/api",
+    "db:seed": "npm run db:seed --workspace @twitter-clone/api"
+  },
+  "workspaces": [
+    "apps/api",
+    "apps/web"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "private": true
+}
