@@ -2,6 +2,8 @@ FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
+
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
@@ -17,6 +19,8 @@ RUN npm run build --workspace @twitter-clone/api
 FROM node:20-bookworm-slim AS runtime
 
 WORKDIR /app
+
+RUN apt-get update -y && apt-get install -y openssl && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json tsconfig.base.json ./
 COPY apps/api/package.json apps/api/package.json
