@@ -15,7 +15,26 @@ Monorepo inicial para un clon funcional de Twitter/X usando Node.js, TypeScript 
 
 ## Estado actual
 
-Este commit deja el scaffolding base del workspace. Todavía faltan dependencias e implementación funcional.
+La base del workspace ya está creada y el bloque de autenticación está implementado de punta a punta en backend y frontend.
+
+## Estado de autenticación
+
+Se cubre `4.1 Autenticación` del challenge con:
+
+- Registro con `email`, `password`, `username` único y `displayName`
+- Login y logout con sesión propia por cookie `HttpOnly`
+- Protección de rutas autenticadas en backend
+- Bootstrap de sesión y route guard en frontend
+- Perfil básico editable con `username`, `bio` y avatar placeholder
+
+### Endpoints actuales
+
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `POST /api/auth/logout`
+- `GET /api/auth/me`
+- `PATCH /api/users/me`
+- `GET /api/users/:username`
 
 ## Cobertura del brief
 

@@ -7,16 +7,16 @@ Este documento traduce el brief del challenge a entregables verificables dentro 
 - [x] Backend en Node.js + TypeScript
 - [x] Frontend web en React + TypeScript
 - [x] Base de datos relacional planificada con SQLite + Prisma
-- [ ] Autenticación propia sin terceros
+- [x] Autenticación propia sin terceros
 - [ ] Stack justificado en el README
 
 ## Autenticación
 
-- [ ] Registro con email + password
-- [ ] Login
-- [ ] Logout
-- [ ] Protección de rutas autenticadas
-- [ ] Perfil básico con username único, bio y avatar placeholder
+- [x] Registro con email + password
+- [x] Login
+- [x] Logout
+- [x] Protección de rutas autenticadas
+- [x] Perfil básico con username único, bio y avatar placeholder
 
 ## Tweets
 
@@ -50,10 +50,10 @@ Este documento traduce el brief del challenge a entregables verificables dentro 
 ## Testing
 
 - [ ] 80%+ coverage backend
-- [ ] Unit tests de modelos y validaciones
-- [ ] Integration tests de endpoints críticos
+- [x] Unit tests de modelos y validaciones
+- [x] Integration tests de endpoints críticos
 - [ ] Al menos un E2E del flujo de autenticación
-- [ ] Frontend integration tests para login
+- [x] Frontend integration tests para login
 - [ ] Frontend integration tests para crear tweet
 - [ ] Frontend integration tests para follow
 
