@@ -44,6 +44,16 @@ Para correr el seed dentro del contenedor API:
 docker compose exec api npm run db:seed --workspace @twitter-clone/api
 ```
 
+## CI
+
+GitHub Actions ahora valida automáticamente:
+
+- `lint`
+- `typecheck`
+- `test`
+- `build`
+- validación y build de las imágenes Docker
+
 ## Estado actual
 
 La base del workspace ya está creada y el bloque de autenticación está implementado de punta a punta en backend y frontend.
