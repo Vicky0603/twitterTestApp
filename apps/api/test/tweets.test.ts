@@ -6,14 +6,14 @@ import { createApp } from "../src/app.js";
 import { createTestPrisma } from "./helpers/test-db.js";
 
 describe("tweet flows", () => {
-  let prisma: PrismaClient;
+  let prisma: PrismaClient | undefined;
 
   beforeEach(async () => {
     prisma = await createTestPrisma(`tweets-${crypto.randomUUID()}`);
   });
 
   afterEach(async () => {
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
   });
 
   it("creates a tweet for the authenticated user", async () => {

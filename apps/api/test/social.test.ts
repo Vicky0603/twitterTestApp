@@ -6,14 +6,14 @@ import { createApp } from "../src/app.js";
 import { createTestPrisma } from "./helpers/test-db.js";
 
 describe("social flows", () => {
-  let prisma: PrismaClient;
+  let prisma: PrismaClient | undefined;
 
   beforeEach(async () => {
     prisma = await createTestPrisma(`social-${crypto.randomUUID()}`);
   });
 
   afterEach(async () => {
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
   });
 
   it("follows and unfollows another user, exposing discover and network data", async () => {

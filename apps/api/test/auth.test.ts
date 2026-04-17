@@ -5,14 +5,14 @@ import { createApp } from "../src/app.js";
 import { createTestPrisma } from "./helpers/test-db.js";
 
 describe("authentication and profile flows", () => {
-  let prisma: PrismaClient;
+  let prisma: PrismaClient | undefined;
 
   beforeEach(async () => {
     prisma = await createTestPrisma(`auth-${crypto.randomUUID()}`);
   });
 
   afterEach(async () => {
-    await prisma.$disconnect();
+    await prisma?.$disconnect();
   });
 
   it("registers a user and creates a session cookie", async () => {
