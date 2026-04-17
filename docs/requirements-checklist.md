@@ -1,95 +1,95 @@
 # Requirements Checklist
 
-Este documento traduce el brief del challenge a entregables verificables dentro del repo.
+This document translates the challenge brief into verifiable repo deliverables.
 
-## Stack y arquitectura
+## Stack And Architecture
 
-- [x] Backend en Node.js + TypeScript
-- [x] Frontend web en React + TypeScript
-- [x] Base de datos relacional planificada con SQLite + Prisma
-- [x] Autenticación propia sin terceros
-- [ ] Stack justificado en el README
+- [x] Backend in Node.js + TypeScript
+- [x] Web frontend in React + TypeScript
+- [x] Relational database planned with SQLite + Prisma
+- [x] Custom authentication without third parties
+- [ ] Stack justified in the README
 
-## Autenticación
+## Authentication
 
-- [x] Registro con email + password
+- [x] Registration with email + password
 - [x] Login
 - [x] Logout
-- [x] Protección de rutas autenticadas
-- [x] Perfil básico con username único, bio y avatar placeholder
+- [x] Protected authenticated routes
+- [x] Basic profile with unique username, bio, and placeholder avatar
 
 ## Tweets
 
-- [ ] Crear tweet de hasta 280 caracteres
-- [ ] Eliminar tweet propio
-- [ ] Timeline con tweets de usuarios seguidos
-- [ ] Orden cronológico
-- [ ] Paginación o infinite scroll
+- [ ] Create tweet up to 280 characters
+- [ ] Delete own tweet
+- [ ] Timeline with tweets from followed users
+- [ ] Chronological ordering
+- [ ] Pagination or infinite scroll
 
-## Interacciones sociales
+## Social Interactions
 
 - [ ] Follow
 - [ ] Unfollow
 - [ ] Like
 - [ ] Unlike
-- [ ] Contador de likes visible
-- [ ] Listado de followers y following en perfil
+- [ ] Visible like count
+- [ ] Followers and following lists on the profile
 
-## Búsqueda
+## Search
 
-- [ ] Búsqueda de usuarios por nombre o username
+- [ ] User search by name or username
 
 ## Responsive
 
-- [ ] Diseño mobile-first
-- [ ] Usable en mobile
-- [ ] Breakpoint mobile `<640px`
-- [ ] Breakpoint tablet `640px-1024px`
-- [ ] Breakpoint desktop `>1024px`
+- [ ] Mobile-first design
+- [ ] Usable on mobile
+- [ ] Mobile breakpoint `<640px`
+- [ ] Tablet breakpoint `640px-1024px`
+- [ ] Desktop breakpoint `>1024px`
 
 ## Testing
 
-- [ ] 80%+ coverage backend
-- [x] Unit tests de modelos y validaciones
-- [x] Integration tests de endpoints críticos
-- [ ] Al menos un E2E del flujo de autenticación
-- [x] Frontend integration tests para login
-- [ ] Frontend integration tests para crear tweet
-- [ ] Frontend integration tests para follow
+- [ ] 80%+ backend coverage
+- [x] Unit tests for models and validations
+- [x] Integration tests for critical endpoints
+- [ ] At least one authentication E2E flow
+- [x] Frontend integration tests for login
+- [ ] Frontend integration tests for create tweet
+- [ ] Frontend integration tests for follow
 
 ## Seed data
 
-- [ ] Seed con al menos 10 usuarios
-- [ ] Tweets realistas
-- [ ] Follows cruzados
-- [ ] Likes cruzados
-- [ ] App usable inmediatamente luego del seed
-- [ ] Credenciales de ejemplo documentadas
+- [ ] Seed with at least 10 users
+- [ ] Realistic tweets
+- [ ] Cross-user follows
+- [ ] Cross-user likes
+- [ ] App usable immediately after seeding
+- [ ] Example credentials documented
 
-## Documentación
+## Documentation
 
-- [ ] README con runbook completo
-- [ ] Prerrequisitos con versiones exactas
-- [ ] Pasos de instalación exactos
-- [ ] Cómo correr seed
-- [ ] Cómo levantar app en desarrollo
-- [ ] Cómo correr tests
-- [ ] Variables de entorno documentadas
-- [ ] Decisiones técnicas
-- [ ] Timeline y grafo de follows explicados
-- [ ] Autenticación explicada
-- [ ] Trade-offs y limitaciones
-- [ ] Uso de herramientas de AI explicado
+- [ ] README with complete runbook
+- [ ] Prerequisites with exact versions
+- [ ] Exact installation steps
+- [ ] How to run the seed
+- [ ] How to run the app in development
+- [ ] How to run tests
+- [ ] Environment variables documented
+- [ ] Technical decisions documented
+- [ ] Timeline and follow graph explained
+- [ ] Authentication explained
+- [ ] Trade-offs and limitations documented
+- [ ] AI tool usage explained
 
 ## Bonus
 
-- [x] Modelo preparado para notificaciones
-- [x] Modelo preparado para reply threads
-- [ ] Implementar al menos uno o dos bonus reales
-- [ ] Docker Compose con un comando
+- [x] Model prepared for notifications
+- [x] Model prepared for reply threads
+- [ ] Implement at least one or two real bonus features
+- [ ] Docker Compose with a single command
 
-## Proceso de desarrollo
+## Development Process
 
-- [ ] Commits progresivos sin squash
-- [ ] Features y tests juntos
-- [ ] Últimos commits de polish y docs
+- [ ] Progressive commits without squash
+- [ ] Features and tests together
+- [ ] Final commits for polish and docs
