@@ -55,6 +55,20 @@ describe("authentication and profile flows", () => {
     expect(duplicate.status).toBe(409);
   });
 
+  it("rejects invalid registration payloads", async () => {
+    const app = createApp({ prisma });
+
+    const response = await request(app).post("/api/auth/register").send({
+      email: "not-an-email",
+      username: "x",
+      displayName: "A",
+      password: "short"
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid registration payload.");
+  });
+
   it("logs in an existing user and returns the current session", async () => {
     const app = createApp({ prisma });
 
@@ -97,6 +111,18 @@ describe("authentication and profile flows", () => {
     });
 
     expect(response.status).toBe(401);
+  });
+
+  it("rejects invalid login payloads", async () => {
+    const app = createApp({ prisma });
+
+    const response = await request(app).post("/api/auth/login").send({
+      email: "alice@example.com",
+      password: "short"
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Invalid login payload.");
   });
 
   it("protects profile updates behind a valid session", async () => {
@@ -148,6 +174,91 @@ describe("authentication and profile flows", () => {
 
     const me = await request(app).get("/api/auth/me").set("Cookie", cookie);
     expect(me.status).toBe(401);
+  });
+
+  it("requires an authenticated session to log out", async () => {
+    const app = createApp({ prisma });
+
+    const response = await request(app).post("/api/auth/logout");
+
+    expect(response.status).toBe(401);
+    expect(response.body.message).toBe("Authentication required.");
+  });
+
+  it("clears the session cookie when the session user no longer exists", async () => {
+    const app = createApp({ prisma });
+
+    const register = await request(app).post("/api/auth/register").send({
+      email: "alice@example.com",
+      username: "alice",
+      displayName: "Alice Doe",
+      password: "Passw0rd!"
+    });
+
+    await prisma.user.delete({
+      where: { email: "alice@example.com" }
+    });
+
+    const me = await request(app).get("/api/auth/me").set("Cookie", register.headers["set-cookie"]);
+
+    expect(me.status).toBe(401);
+    expect(me.body.message).toBe("No active session.");
+  });
+
+  it("rejects expired sessions and removes them from the database", async () => {
+    const app = createApp({ prisma });
+
+    const user = await prisma.user.create({
+      data: {
+        email: "alice@example.com",
+        username: "alice",
+        displayName: "Alice Doe",
+        passwordHash: "hash"
+      }
+    });
+
+    await prisma.session.create({
+      data: {
+        userId: user.id,
+        token: "expired-token",
+        expiresAt: new Date("2020-01-01T00:00:00.000Z")
+      }
+    });
+
+    const me = await request(app).get("/api/auth/me").set("Cookie", "twitter_clone_session=expired-token");
+
+    expect(me.status).toBe(401);
+    expect(me.body.message).toBe("No active session.");
+
+    const deletedSession = await prisma.session.findUnique({
+      where: { token: "expired-token" }
+    });
+    expect(deletedSession).toBeNull();
+  });
+
+  it("honors the secure cookie override when creating auth sessions", async () => {
+    const previousValue = process.env.SESSION_COOKIE_SECURE;
+    process.env.SESSION_COOKIE_SECURE = "true";
+
+    try {
+      const app = createApp({ prisma });
+
+      const register = await request(app).post("/api/auth/register").send({
+        email: "alice@example.com",
+        username: "alice",
+        displayName: "Alice Doe",
+        password: "Passw0rd!"
+      });
+
+      expect(register.status).toBe(201);
+      expect(register.headers["set-cookie"][0]).toContain("Secure");
+    } finally {
+      if (previousValue === undefined) {
+        delete process.env.SESSION_COOKIE_SECURE;
+      } else {
+        process.env.SESSION_COOKIE_SECURE = previousValue;
+      }
+    }
   });
 
   it("returns public profile data by username", async () => {
