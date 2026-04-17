@@ -20,6 +20,7 @@
 body {
   margin: 0;
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 a {
@@ -40,13 +41,13 @@ textarea {
   min-height: 100vh;
   display: grid;
   place-items: start center;
-  padding: 24px;
+  padding: 16px;
 }
 
 .hero-card {
   width: min(100%, 720px);
-  padding: 32px;
-  border-radius: 24px;
+  padding: 24px;
+  border-radius: 20px;
   background: rgba(255, 255, 255, 0.85);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
 }
@@ -72,12 +73,14 @@ textarea {
   font-size: 1rem;
   line-height: 1.6;
   color: #334155;
+  overflow-wrap: anywhere;
 }
 
 .panel {
-  width: min(100%, 720px);
-  padding: 24px;
-  border-radius: 24px;
+  width: 100%;
+  min-width: 0;
+  padding: 18px;
+  border-radius: 20px;
   background: var(--panel-bg);
   border: 1px solid var(--panel-border);
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.12);
@@ -91,13 +94,14 @@ textarea {
 
 .dashboard-grid {
   width: min(100%, 1160px);
+  min-width: 0;
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .sidebar-stack {
   display: grid;
-  gap: 24px;
+  gap: 16px;
 }
 
 .stack {
@@ -116,6 +120,7 @@ textarea {
 .field input,
 .field textarea {
   width: 100%;
+  min-width: 0;
   padding: 14px 16px;
   border-radius: 16px;
   border: 1px solid #cbd5e1;
@@ -130,6 +135,8 @@ textarea {
   padding: 14px 20px;
   font-weight: 700;
   cursor: pointer;
+  min-height: 48px;
+  max-width: 100%;
 }
 
 .primary-button {
@@ -153,8 +160,12 @@ textarea {
 
 .button-row {
   display: flex;
+  flex-direction: column;
   gap: 12px;
-  flex-wrap: wrap;
+}
+
+.button-row > * {
+  width: 100%;
 }
 
 .form-error,
@@ -177,8 +188,8 @@ textarea {
 
 .profile-header {
   display: flex;
-  align-items: center;
-  gap: 16px;
+  align-items: flex-start;
+  gap: 12px;
   margin-bottom: 20px;
 }
 
@@ -222,15 +233,18 @@ textarea {
 
 .composer-footer {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .char-counter {
   color: var(--text-muted);
   font-size: 0.95rem;
+}
+
+.composer-footer .primary-button {
+  width: 100%;
 }
 
 .timeline-list {
@@ -240,27 +254,29 @@ textarea {
 }
 
 .tweet-card {
-  padding: 18px;
-  border-radius: 20px;
+  padding: 16px;
+  border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(255, 255, 255, 0.72);
+  min-width: 0;
 }
 
 .tweet-meta {
   display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  gap: 16px;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .tweet-author {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 12px;
+  min-width: 0;
 }
 
 .tweet-author strong {
   display: block;
+  overflow-wrap: anywhere;
 }
 
 .tweet-avatar {
@@ -273,16 +289,25 @@ textarea {
 .tweet-handle {
   margin: 4px 0 0;
   color: var(--text-muted);
+  overflow-wrap: anywhere;
 }
 
 .tweet-content {
   margin: 16px 0 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   line-height: 1.6;
 }
 
 .tweet-actions {
   margin-top: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tweet-actions > * {
+  width: 100%;
 }
 
 .timeline-pagination {
@@ -293,7 +318,7 @@ textarea {
 
 .network-grid {
   display: grid;
-  gap: 24px;
+  gap: 20px;
 }
 
 .network-grid h3,
@@ -315,28 +340,98 @@ textarea {
 
 .social-card {
   display: flex;
-  align-items: center;
+  flex-direction: column;
+  align-items: stretch;
   justify-content: space-between;
-  gap: 16px;
-  padding: 16px;
+  gap: 12px;
+  padding: 14px;
   border-radius: 18px;
   border: 1px solid rgba(148, 163, 184, 0.24);
   background: rgba(255, 255, 255, 0.72);
+  min-width: 0;
+}
+
+.social-card > div {
+  min-width: 0;
+}
+
+.social-card .primary-button,
+.social-card .ghost-button {
+  width: 100%;
 }
 
 .social-meta {
   margin: 8px 0 0;
   color: var(--text-muted);
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
-@media (min-width: 640px) {
+@media (min-width: 640px) and (max-width: 1023px) {
   .panel {
     padding: 32px;
   }
 
   .tweet-card {
     padding: 22px;
+  }
+
+  .app-shell {
+    padding: 24px;
+  }
+
+  .dashboard-grid,
+  .sidebar-stack {
+    gap: 24px;
+  }
+
+  .button-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .button-row > * {
+    width: auto;
+  }
+
+  .composer-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .composer-footer .primary-button {
+    width: auto;
+  }
+
+  .tweet-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .tweet-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .tweet-actions > * {
+    width: auto;
+  }
+
+  .social-card {
+    flex-direction: row;
+    align-items: center;
+    padding: 16px;
+  }
+
+  .social-card .primary-button,
+  .social-card .ghost-button {
+    width: auto;
+  }
+
+  .network-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }
 
@@ -348,9 +443,54 @@ textarea {
   .dashboard-grid {
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
     align-items: start;
+    gap: 24px;
   }
 
   .network-grid {
     grid-template-columns: 1fr 1fr;
+  }
+
+  .button-row {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .button-row > * {
+    width: auto;
+  }
+
+  .composer-footer {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .composer-footer .primary-button {
+    width: auto;
+  }
+
+  .tweet-meta {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+
+  .tweet-actions {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+
+  .tweet-actions > * {
+    width: auto;
+  }
+
+  .social-card {
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .social-card .primary-button,
+  .social-card .ghost-button {
+    width: auto;
   }
 }

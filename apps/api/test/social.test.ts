@@ -187,4 +187,42 @@ describe("social flows", () => {
     );
     expect(profile.body.user.following).toEqual([]);
   });
+
+  it("searches users by display name or username", async () => {
+    const app = createApp({ prisma });
+    const alice = await request(app).post("/api/auth/register").send({
+      email: "alice@example.com",
+      username: "alice",
+      displayName: "Alice Doe",
+      password: "Passw0rd!"
+    });
+    await request(app).post("/api/auth/register").send({
+      email: "bobby@example.com",
+      username: "bobby_tables",
+      displayName: "Bob Tables",
+      password: "Passw0rd!"
+    });
+    await request(app).post("/api/auth/register").send({
+      email: "carol@example.com",
+      username: "carol",
+      displayName: "Carol Example",
+      password: "Passw0rd!"
+    });
+
+    const byUsername = await request(app)
+      .get("/api/users/search?q=bobby")
+      .set("Cookie", alice.headers["set-cookie"]);
+
+    expect(byUsername.status).toBe(200);
+    expect(byUsername.body.users).toHaveLength(1);
+    expect(byUsername.body.users[0].username).toBe("bobby_tables");
+
+    const byDisplayName = await request(app)
+      .get("/api/users/search?q=Bob")
+      .set("Cookie", alice.headers["set-cookie"]);
+
+    expect(byDisplayName.status).toBe(200);
+    expect(byDisplayName.body.users).toHaveLength(1);
+    expect(byDisplayName.body.users[0].displayName).toBe("Bob Tables");
+  });
 });
