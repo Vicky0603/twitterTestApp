@@ -1,0 +1,27 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    environment:
+      PORT: "4000"
+      NODE_ENV: development
+      DATABASE_URL: file:/data/twitter.db
+      APP_ORIGIN: http://localhost:8080
+      SESSION_COOKIE_SECURE: "false"
+    volumes:
+      - twitter_data:/data
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+      args:
+        VITE_API_URL: /api
+    depends_on:
+      - api
+    ports:
+      - "8080:80"
+
+volumes:
+  twitter_data:

@@ -13,6 +13,37 @@ Monorepo inicial para un clon funcional de Twitter/X usando Node.js, TypeScript 
 - `apps/api`: API HTTP, autenticación, timeline, follows, likes, seeds y tests
 - `apps/web`: cliente web responsive mobile-first
 
+## Docker
+
+El repo ahora incluye una copia containerizada completa con:
+
+- `Dockerfile.api`: build y runtime del backend
+- `Dockerfile.web`: build del frontend y serving con `nginx`
+- `docker-compose.yml`: levanta web + API con SQLite persistido en volumen Docker
+
+### Levantar la app con Docker
+
+```bash
+docker compose up --build
+```
+
+La app queda disponible en `http://localhost:8080`.
+
+### Notas de runtime
+
+- El frontend consume la API vía `/api` detrás de `nginx`, así que navegador y API comparten origen.
+- La base SQLite persiste en el volumen `twitter_data`.
+- El contenedor API ejecuta `prisma db push` al iniciar porque todavía no hay migrations versionadas.
+- Para desarrollo local por Docker, `SESSION_COOKIE_SECURE=false` evita que las cookies queden bloqueadas sobre `http://localhost`.
+
+### Seed opcional
+
+Para correr el seed dentro del contenedor API:
+
+```bash
+docker compose exec api npm run db:seed --workspace @twitter-clone/api
+```
+
 ## Estado actual
 
 La base del workspace ya está creada y el bloque de autenticación está implementado de punta a punta en backend y frontend.

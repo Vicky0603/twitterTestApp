@@ -46,16 +46,24 @@ type AuthenticatedUser = {
 const SESSION_COOKIE_NAME = process.env.SESSION_COOKIE_NAME ?? "twitter_clone_session";
 const SESSION_TTL_MS = 1000 * 60 * 60 * 24 * 30;
 
+function shouldUseSecureCookies() {
+  const configured = process.env.SESSION_COOKIE_SECURE;
+
+  if (configured !== undefined) {
+    return configured === "true";
+  }
+
+  return process.env.NODE_ENV === "production";
+}
+
 export type { AuthenticatedUser };
 export { loginSchema, registerSchema, updateProfileSchema };
 
 function sessionCookieOptions() {
-  const isProduction = process.env.NODE_ENV === "production";
-
   return {
     httpOnly: true,
     sameSite: "lax" as const,
-    secure: isProduction,
+    secure: shouldUseSecureCookies(),
     path: "/",
     expires: new Date(Date.now() + SESSION_TTL_MS)
   };
@@ -88,7 +96,7 @@ function clearSessionCookie(response: Response) {
   response.clearCookie(SESSION_COOKIE_NAME, {
     httpOnly: true,
     sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
+    secure: shouldUseSecureCookies(),
     path: "/"
   });
 }

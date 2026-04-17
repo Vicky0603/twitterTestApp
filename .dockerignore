@@ -1,0 +1,10 @@
+node_modules
+apps/*/node_modules
+apps/*/dist
+apps/web/.vite
+apps/web/tsconfig.app.tsbuildinfo
+apps/api/apps/api/prisma/test-dbs
+coverage
+.git
+.DS_Store
+twitterTestApp
