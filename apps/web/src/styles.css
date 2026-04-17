@@ -95,6 +95,11 @@ textarea {
   gap: 24px;
 }
 
+.sidebar-stack {
+  display: grid;
+  gap: 24px;
+}
+
 .stack {
   display: grid;
   gap: 16px;
@@ -200,6 +205,17 @@ textarea {
   color: var(--text-muted);
 }
 
+.discover-panel {
+  display: grid;
+  gap: 16px;
+  margin: 24px 0 8px;
+}
+
+.discover-header {
+  display: grid;
+  gap: 8px;
+}
+
 .tweet-composer {
   margin-top: 0;
 }
@@ -275,6 +291,45 @@ textarea {
   justify-items: center;
 }
 
+.network-grid {
+  display: grid;
+  gap: 24px;
+}
+
+.network-grid h3,
+.discover-panel h3 {
+  margin: 0;
+}
+
+.network-count {
+  margin: 8px 0 0;
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.social-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.social-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.social-meta {
+  margin: 8px 0 0;
+  color: var(--text-muted);
+  font-size: 0.95rem;
+}
+
 @media (min-width: 640px) {
   .panel {
     padding: 32px;
@@ -293,5 +348,9 @@ textarea {
   .dashboard-grid {
     grid-template-columns: minmax(320px, 380px) minmax(0, 1fr);
     align-items: start;
+  }
+
+  .network-grid {
+    grid-template-columns: 1fr 1fr;
   }
 }

@@ -80,6 +80,8 @@ export type TimelineTweet = {
   createdAt: string;
   updatedAt: string;
   author: TimelineAuthor;
+  likesCount: number;
+  likedByMe: boolean;
 };
 
 export type TimelineResponse = {
@@ -88,6 +90,22 @@ export type TimelineResponse = {
     nextCursor: string | null;
     hasMore: boolean;
   };
+};
+
+export type SocialUser = {
+  id: string;
+  username: string;
+  displayName: string;
+  bio: string;
+  avatarUrl: string;
+  followersCount: number;
+  followingCount: number;
+  isFollowing: boolean;
+};
+
+export type NetworkResponse = {
+  followers: SocialUser[];
+  following: SocialUser[];
 };
 
 export function getTimeline(cursor?: string | null) {
@@ -104,6 +122,38 @@ export function createTweet(input: { content: string }) {
 
 export function deleteTweet(tweetId: string) {
   return apiRequest<null>(`/api/tweets/${tweetId}`, {
+    method: "DELETE"
+  });
+}
+
+export function likeTweet(tweetId: string) {
+  return apiRequest<{ tweet: TimelineTweet }>(`/api/tweets/${tweetId}/like`, {
+    method: "POST"
+  });
+}
+
+export function unlikeTweet(tweetId: string) {
+  return apiRequest<{ tweet: TimelineTweet }>(`/api/tweets/${tweetId}/like`, {
+    method: "DELETE"
+  });
+}
+
+export function getDiscoverUsers() {
+  return apiRequest<{ users: SocialUser[] }>("/api/users/discover");
+}
+
+export function getMyNetwork() {
+  return apiRequest<NetworkResponse>("/api/users/me/network");
+}
+
+export function followUser(username: string) {
+  return apiRequest<{ user: SocialUser }>(`/api/users/${encodeURIComponent(username)}/follow`, {
+    method: "POST"
+  });
+}
+
+export function unfollowUser(username: string) {
+  return apiRequest<{ user: SocialUser }>(`/api/users/${encodeURIComponent(username)}/follow`, {
     method: "DELETE"
   });
 }

@@ -24,6 +24,10 @@ type TimelineTweetRecord = {
     displayName: string;
     avatarUrl: string | null;
   };
+  likes: Array<{ userId: string }>;
+  _count: {
+    likes: number;
+  };
 };
 
 const createTweetSchema = z.object({
@@ -34,6 +38,10 @@ const timelineQuerySchema = z.object({
   cursor: z.string().min(1).optional(),
   limit: z.coerce.number().int().min(1).max(20).default(10)
 });
+
+function getRouteParam(value: string | string[] | undefined) {
+  return Array.isArray(value) ? value[0] : value;
+}
 
 export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   const router = Router();
@@ -48,7 +56,20 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
           authorId: request.currentUser!.id
         },
         include: {
-          author: true
+          author: true,
+          likes: {
+            where: {
+              userId: request.currentUser!.id
+            },
+            select: {
+              userId: true
+            }
+          },
+          _count: {
+            select: {
+              likes: true
+            }
+          }
         }
       });
 
@@ -99,7 +120,20 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
           ...cursorFilter
         },
         include: {
-          author: true
+          author: true,
+          likes: {
+            where: {
+              userId: request.currentUser!.id
+            },
+            select: {
+              userId: true
+            }
+          },
+          _count: {
+            select: {
+              likes: true
+            }
+          }
         },
         orderBy: [{ createdAt: "desc" }, { id: "desc" }],
         take: query.limit + 1
@@ -127,8 +161,14 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   });
 
   router.delete("/:tweetId", auth.requireAuth, async (request, response) => {
+    const tweetId = getRouteParam(request.params.tweetId);
+    if (!tweetId) {
+      response.status(400).json({ message: "Tweet id is required." });
+      return;
+    }
+
     const tweet = await prisma.tweet.findUnique({
-      where: { id: request.params.tweetId },
+      where: { id: tweetId },
       select: { id: true, authorId: true }
     });
 
@@ -147,6 +187,107 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
     });
 
     response.status(204).send();
+  });
+
+  router.post("/:tweetId/like", auth.requireAuth, async (request, response) => {
+    const tweetId = getRouteParam(request.params.tweetId);
+    if (!tweetId) {
+      response.status(400).json({ message: "Tweet id is required." });
+      return;
+    }
+
+    const tweet = await prisma.tweet.findUnique({
+      where: { id: tweetId },
+      select: { id: true }
+    });
+
+    if (!tweet) {
+      response.status(404).json({ message: "Tweet not found." });
+      return;
+    }
+
+    await prisma.like.upsert({
+      where: {
+        userId_tweetId: {
+          userId: request.currentUser!.id,
+          tweetId: tweet.id
+        }
+      },
+      update: {},
+      create: {
+        userId: request.currentUser!.id,
+        tweetId: tweet.id
+      }
+    });
+
+    const updatedTweet = await prisma.tweet.findUniqueOrThrow({
+      where: { id: tweet.id },
+      include: {
+        author: true,
+        likes: {
+          where: {
+            userId: request.currentUser!.id
+          },
+          select: {
+            userId: true
+          }
+        },
+        _count: {
+          select: {
+            likes: true
+          }
+        }
+      }
+    });
+
+    response.json({ tweet: serializeTweet(updatedTweet) });
+  });
+
+  router.delete("/:tweetId/like", auth.requireAuth, async (request, response) => {
+    const tweetId = getRouteParam(request.params.tweetId);
+    if (!tweetId) {
+      response.status(400).json({ message: "Tweet id is required." });
+      return;
+    }
+
+    const tweet = await prisma.tweet.findUnique({
+      where: { id: tweetId },
+      select: { id: true }
+    });
+
+    if (!tweet) {
+      response.status(404).json({ message: "Tweet not found." });
+      return;
+    }
+
+    await prisma.like.deleteMany({
+      where: {
+        userId: request.currentUser!.id,
+        tweetId: tweet.id
+      }
+    });
+
+    const updatedTweet = await prisma.tweet.findUniqueOrThrow({
+      where: { id: tweet.id },
+      include: {
+        author: true,
+        likes: {
+          where: {
+            userId: request.currentUser!.id
+          },
+          select: {
+            userId: true
+          }
+        },
+        _count: {
+          select: {
+            likes: true
+          }
+        }
+      }
+    });
+
+    response.json({ tweet: serializeTweet(updatedTweet) });
   });
 
   return router;

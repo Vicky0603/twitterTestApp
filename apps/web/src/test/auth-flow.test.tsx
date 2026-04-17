@@ -58,6 +58,44 @@ describe("authentication UI", () => {
             headers: { "Content-Type": "application/json" }
           }
         )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            tweets: [],
+            pageInfo: {
+              nextCursor: null,
+              hasMore: false
+            }
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            followers: [],
+            following: []
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            users: []
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
       );
 
     render(
@@ -119,6 +157,29 @@ describe("authentication UI", () => {
       .mockResolvedValueOnce(
         new Response(
           JSON.stringify({
+            followers: [],
+            following: []
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
+            users: []
+          }),
+          {
+            status: 200,
+            headers: { "Content-Type": "application/json" }
+          }
+        )
+      )
+      .mockResolvedValueOnce(
+        new Response(
+          JSON.stringify({
             tweet: {
               id: "tweet_1",
               content: "Timeline tweet",
@@ -129,7 +190,9 @@ describe("authentication UI", () => {
                 username: "alice",
                 displayName: "Alice Doe",
                 avatarUrl: "https://example.com/alice.svg"
-              }
+              },
+              likesCount: 0,
+              likedByMe: false
             }
           }),
           {

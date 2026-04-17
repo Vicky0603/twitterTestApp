@@ -1,7 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
-import { createTweet, deleteTweet, getTimeline, type TimelineTweet } from "../auth/api";
+import {
+  createTweet,
+  deleteTweet,
+  followUser,
+  getDiscoverUsers,
+  getMyNetwork,
+  getTimeline,
+  likeTweet,
+  type SocialUser,
+  type TimelineTweet,
+  unfollowUser,
+  unlikeTweet
+} from "../auth/api";
 
 export function ProfilePage() {
   const navigate = useNavigate();
@@ -20,8 +32,14 @@ export function ProfilePage() {
   const [loadingMore, setLoadingMore] = useState(false);
   const [postingTweet, setPostingTweet] = useState(false);
   const [deletingTweetId, setDeletingTweetId] = useState<string | null>(null);
+  const [likingTweetId, setLikingTweetId] = useState<string | null>(null);
   const [nextCursor, setNextCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(false);
+  const [discoverUsers, setDiscoverUsers] = useState<SocialUser[]>([]);
+  const [followers, setFollowers] = useState<SocialUser[]>([]);
+  const [following, setFollowing] = useState<SocialUser[]>([]);
+  const [socialError, setSocialError] = useState<string | null>(null);
+  const [followingUsername, setFollowingUsername] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
 
@@ -34,23 +52,33 @@ export function ProfilePage() {
   useEffect(() => {
     let active = true;
 
-    async function loadInitialTimeline() {
+    async function loadDashboard() {
       try {
-        const response = await getTimeline();
+        const [timelineResponse, networkResponse, discoverResponse] = await Promise.all([
+          getTimeline(),
+          getMyNetwork(),
+          getDiscoverUsers()
+        ]);
         if (!active) {
           return;
         }
 
-        setTweets(response.tweets);
-        setNextCursor(response.pageInfo.nextCursor);
-        setHasMore(response.pageInfo.hasMore);
+        setTweets(timelineResponse.tweets);
+        setNextCursor(timelineResponse.pageInfo.nextCursor);
+        setHasMore(timelineResponse.pageInfo.hasMore);
+        setFollowers(networkResponse.followers);
+        setFollowing(networkResponse.following);
+        setDiscoverUsers(discoverResponse.users);
         setTimelineError(null);
+        setSocialError(null);
       } catch (loadError) {
         if (!active) {
           return;
         }
 
-        setTimelineError(loadError instanceof Error ? loadError.message : "Could not load timeline.");
+        const message = loadError instanceof Error ? loadError.message : "Could not load dashboard.";
+        setTimelineError(message);
+        setSocialError(message);
       } finally {
         if (active) {
           setLoadingTimeline(false);
@@ -58,7 +86,7 @@ export function ProfilePage() {
       }
     }
 
-    void loadInitialTimeline();
+    void loadDashboard();
 
     return () => {
       active = false;
@@ -162,53 +190,168 @@ export function ProfilePage() {
     }
   }
 
+  async function handleToggleFollow(profile: SocialUser) {
+    setSocialError(null);
+    setFollowingUsername(profile.username);
+
+    try {
+      const [response, timelineResponse] = await Promise.all([
+        profile.isFollowing ? unfollowUser(profile.username) : followUser(profile.username),
+        getTimeline()
+      ]);
+      const updatedUser = response.user;
+      setTweets(timelineResponse.tweets);
+      setNextCursor(timelineResponse.pageInfo.nextCursor);
+      setHasMore(timelineResponse.pageInfo.hasMore);
+
+      setDiscoverUsers((currentUsers) =>
+        currentUsers.map((candidate) =>
+          candidate.id === updatedUser.id
+            ? {
+                ...candidate,
+                ...updatedUser
+              }
+            : candidate
+        )
+      );
+      setFollowers((currentFollowers) =>
+        currentFollowers.map((entry) =>
+          entry.id === updatedUser.id
+            ? {
+                ...entry,
+                isFollowing: updatedUser.isFollowing,
+                followersCount: updatedUser.followersCount,
+                followingCount: updatedUser.followingCount
+              }
+            : entry
+        )
+      );
+
+      if (profile.isFollowing) {
+        setFollowing((currentFollowing) => currentFollowing.filter((entry) => entry.id !== updatedUser.id));
+      } else {
+        setFollowing((currentFollowing) => {
+          const exists = currentFollowing.some((entry) => entry.id === updatedUser.id);
+          return exists ? currentFollowing : [{ ...updatedUser, isFollowing: true }, ...currentFollowing];
+        });
+      }
+    } catch (submitError) {
+      setSocialError(submitError instanceof Error ? submitError.message : "Could not update follow status.");
+    } finally {
+      setFollowingUsername(null);
+    }
+  }
+
+  async function handleToggleLike(tweet: TimelineTweet) {
+    setTweetError(null);
+    setLikingTweetId(tweet.id);
+
+    try {
+      const response = tweet.likedByMe ? await unlikeTweet(tweet.id) : await likeTweet(tweet.id);
+      setTweets((currentTweets) =>
+        currentTweets.map((entry) => (entry.id === tweet.id ? response.tweet : entry))
+      );
+    } catch (submitError) {
+      setTweetError(submitError instanceof Error ? submitError.message : "Could not update like.");
+    } finally {
+      setLikingTweetId(null);
+    }
+  }
+
   return (
     <main className="app-shell">
       <div className="dashboard-grid">
-        <section className="panel profile-panel">
-          <div className="profile-header">
-            <img className="avatar" src={user.avatarUrl} alt={`${user.username} avatar`} />
-            <div>
-              <p className="eyebrow">Your profile</p>
-              <h1>{user.displayName}</h1>
-              <p className="body-copy">@{user.username}</p>
+        <div className="sidebar-stack">
+          <section className="panel profile-panel">
+            <div className="profile-header">
+              <img className="avatar" src={user.avatarUrl} alt={`${user.username} avatar`} />
+              <div>
+                <p className="eyebrow">Your profile</p>
+                <h1>{user.displayName}</h1>
+                <p className="body-copy">@{user.username}</p>
+              </div>
             </div>
-          </div>
 
-          <form className="stack" onSubmit={handleSubmit}>
-            <label className="field">
-              <span>Display name</span>
-              <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required />
-            </label>
+            <form className="stack" onSubmit={handleSubmit}>
+              <label className="field">
+                <span>Display name</span>
+                <input value={displayName} onChange={(event) => setDisplayName(event.target.value)} required />
+              </label>
 
-            <label className="field">
-              <span>Username</span>
-              <input value={username} onChange={(event) => setUsername(event.target.value)} required />
-            </label>
+              <label className="field">
+                <span>Username</span>
+                <input value={username} onChange={(event) => setUsername(event.target.value)} required />
+              </label>
 
-            <label className="field">
-              <span>Bio</span>
-              <textarea
-                value={bio}
-                onChange={(event) => setBio(event.target.value)}
-                rows={4}
-                maxLength={160}
-              />
-            </label>
+              <label className="field">
+                <span>Bio</span>
+                <textarea
+                  value={bio}
+                  onChange={(event) => setBio(event.target.value)}
+                  rows={4}
+                  maxLength={160}
+                />
+              </label>
 
-            {message ? <p className="form-success">{message}</p> : null}
-            {error ? <p className="form-error">{error}</p> : null}
+              {message ? <p className="form-success">{message}</p> : null}
+              {error ? <p className="form-error">{error}</p> : null}
 
-            <div className="button-row">
-              <button className="primary-button" type="submit" disabled={submitting}>
-                {submitting ? "Saving..." : "Save profile"}
-              </button>
-              <button className="ghost-button" type="button" onClick={handleLogout}>
-                Logout
-              </button>
+              <div className="button-row">
+                <button className="primary-button" type="submit" disabled={submitting}>
+                  {submitting ? "Saving..." : "Save profile"}
+                </button>
+                <button className="ghost-button" type="button" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            </form>
+          </section>
+
+          <section className="panel social-panel">
+            <p className="eyebrow">Network</p>
+            <div className="network-grid">
+              <div>
+                <h3>Following</h3>
+                <p className="network-count">{following.length}</p>
+                <div className="social-list">
+                  {following.length === 0 ? <p className="body-copy">You are not following anyone yet.</p> : null}
+                  {following.map((entry) => (
+                    <article className="social-card" key={`following-${entry.id}`}>
+                      <div>
+                        <strong>{entry.displayName}</strong>
+                        <p className="tweet-handle">@{entry.username}</p>
+                      </div>
+                      <button
+                        className="ghost-button"
+                        type="button"
+                        disabled={followingUsername === entry.username}
+                        onClick={() => void handleToggleFollow(entry)}
+                      >
+                        {followingUsername === entry.username ? "Working..." : "Unfollow"}
+                      </button>
+                    </article>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <h3>Followers</h3>
+                <p className="network-count">{followers.length}</p>
+                <div className="social-list">
+                  {followers.length === 0 ? <p className="body-copy">No followers yet.</p> : null}
+                  {followers.map((entry) => (
+                    <article className="social-card" key={`follower-${entry.id}`}>
+                      <div>
+                        <strong>{entry.displayName}</strong>
+                        <p className="tweet-handle">@{entry.username}</p>
+                      </div>
+                    </article>
+                  ))}
+                </div>
+              </div>
             </div>
-          </form>
-        </section>
+          </section>
+        </div>
 
         <section className="panel timeline-panel">
           <div className="timeline-header">
@@ -241,6 +384,40 @@ export function ProfilePage() {
 
           {tweetError ? <p className="form-error">{tweetError}</p> : null}
           {timelineError ? <p className="form-error">{timelineError}</p> : null}
+          {socialError ? <p className="form-error">{socialError}</p> : null}
+
+          <section className="discover-panel">
+            <div className="discover-header">
+              <h3>Discover people</h3>
+              <p className="timeline-caption">Follow users to populate your timeline.</p>
+            </div>
+            <div className="social-list">
+              {discoverUsers.length === 0 ? <p className="body-copy">No suggestions available.</p> : null}
+              {discoverUsers.map((candidate) => (
+                <article className="social-card" key={candidate.id}>
+                  <div>
+                    <strong>{candidate.displayName}</strong>
+                    <p className="tweet-handle">@{candidate.username}</p>
+                    <p className="social-meta">
+                      {candidate.followersCount} followers · {candidate.followingCount} following
+                    </p>
+                  </div>
+                  <button
+                    className={candidate.isFollowing ? "ghost-button" : "primary-button"}
+                    type="button"
+                    disabled={followingUsername === candidate.username}
+                    onClick={() => void handleToggleFollow(candidate)}
+                  >
+                    {followingUsername === candidate.username
+                      ? "Working..."
+                      : candidate.isFollowing
+                        ? "Unfollow"
+                        : "Follow"}
+                  </button>
+                </article>
+              ))}
+            </div>
+          </section>
 
           {loadingTimeline ? (
             <p className="body-copy">Loading timeline...</p>
@@ -272,8 +449,21 @@ export function ProfilePage() {
 
                     <p className="tweet-content">{tweet.content}</p>
 
+                    <div className="tweet-actions">
+                      <button
+                        className={tweet.likedByMe ? "primary-button" : "ghost-button"}
+                        type="button"
+                        onClick={() => void handleToggleLike(tweet)}
+                        disabled={likingTweetId === tweet.id}
+                      >
+                        {likingTweetId === tweet.id
+                          ? "Working..."
+                          : tweet.likedByMe
+                            ? `Unlike · ${tweet.likesCount}`
+                            : `Like · ${tweet.likesCount}`}
+                      </button>
+
                     {isOwner ? (
-                      <div className="tweet-actions">
                         <button
                           className="ghost-button"
                           type="button"
@@ -282,8 +472,8 @@ export function ProfilePage() {
                         >
                           {deletingTweetId === tweet.id ? "Deleting..." : "Delete"}
                         </button>
-                      </div>
                     ) : null}
+                    </div>
                   </article>
                 );
               })}
