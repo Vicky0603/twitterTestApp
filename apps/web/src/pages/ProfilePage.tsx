@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../auth/AuthContext";
 import {
@@ -9,6 +9,7 @@ import {
   getMyNetwork,
   getTimeline,
   likeTweet,
+  searchUsers,
   type SocialUser,
   type TimelineTweet,
   unfollowUser,
@@ -38,10 +39,14 @@ export function ProfilePage() {
   const [discoverUsers, setDiscoverUsers] = useState<SocialUser[]>([]);
   const [followers, setFollowers] = useState<SocialUser[]>([]);
   const [following, setFollowing] = useState<SocialUser[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchResults, setSearchResults] = useState<SocialUser[]>([]);
+  const [searchingUsers, setSearchingUsers] = useState(false);
   const [socialError, setSocialError] = useState<string | null>(null);
   const [followingUsername, setFollowingUsername] = useState<string | null>(null);
   const loadMoreRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
+  const deferredSearchTerm = useDeferredValue(searchTerm);
 
   useEffect(() => {
     setUsername(user?.username ?? "");
@@ -112,6 +117,47 @@ export function ProfilePage() {
       observer.disconnect();
     };
   }, [hasMore, nextCursor, tweets.length]);
+
+  useEffect(() => {
+    let active = true;
+    const query = deferredSearchTerm.trim();
+
+    async function runSearch() {
+      if (!query) {
+        setSearchResults([]);
+        setSearchingUsers(false);
+        return;
+      }
+
+      setSearchingUsers(true);
+
+      try {
+        const response = await searchUsers(query);
+        if (!active) {
+          return;
+        }
+
+        setSearchResults(response.users);
+        setSocialError(null);
+      } catch (loadError) {
+        if (!active) {
+          return;
+        }
+
+        setSocialError(loadError instanceof Error ? loadError.message : "Could not search users.");
+      } finally {
+        if (active) {
+          setSearchingUsers(false);
+        }
+      }
+    }
+
+    void runSearch();
+
+    return () => {
+      active = false;
+    };
+  }, [deferredSearchTerm]);
 
   if (!user) {
     return null;
@@ -206,6 +252,16 @@ export function ProfilePage() {
 
       setDiscoverUsers((currentUsers) =>
         currentUsers.map((candidate) =>
+          candidate.id === updatedUser.id
+            ? {
+                ...candidate,
+                ...updatedUser
+              }
+            : candidate
+        )
+      );
+      setSearchResults((currentResults) =>
+        currentResults.map((candidate) =>
           candidate.id === updatedUser.id
             ? {
                 ...candidate,
@@ -385,6 +441,52 @@ export function ProfilePage() {
           {tweetError ? <p className="form-error">{tweetError}</p> : null}
           {timelineError ? <p className="form-error">{timelineError}</p> : null}
           {socialError ? <p className="form-error">{socialError}</p> : null}
+
+          <section className="discover-panel">
+            <div className="discover-header">
+              <h3>Search users</h3>
+              <p className="timeline-caption">Search by display name or username.</p>
+            </div>
+            <label className="field">
+              <span>Search</span>
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder="Try alice or Alice Doe"
+              />
+            </label>
+            {searchTerm.trim() ? (
+              <div className="social-list">
+                {searchingUsers ? <p className="body-copy">Searching users...</p> : null}
+                {!searchingUsers && searchResults.length === 0 ? (
+                  <p className="body-copy">No users match that search.</p>
+                ) : null}
+                {searchResults.map((candidate) => (
+                  <article className="social-card" key={`search-${candidate.id}`}>
+                    <div>
+                      <strong>{candidate.displayName}</strong>
+                      <p className="tweet-handle">@{candidate.username}</p>
+                      <p className="social-meta">
+                        {candidate.followersCount} followers · {candidate.followingCount} following
+                      </p>
+                    </div>
+                    <button
+                      className={candidate.isFollowing ? "ghost-button" : "primary-button"}
+                      type="button"
+                      disabled={followingUsername === candidate.username}
+                      onClick={() => void handleToggleFollow(candidate)}
+                    >
+                      {followingUsername === candidate.username
+                        ? "Working..."
+                        : candidate.isFollowing
+                          ? "Unfollow"
+                          : "Follow"}
+                    </button>
+                  </article>
+                ))}
+              </div>
+            ) : null}
+          </section>
 
           <section className="discover-panel">
             <div className="discover-header">

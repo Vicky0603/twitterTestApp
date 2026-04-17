@@ -39,10 +39,6 @@ const timelineQuerySchema = z.object({
   limit: z.coerce.number().int().min(1).max(20).default(10)
 });
 
-function getRouteParam(value: string | string[] | undefined) {
-  return Array.isArray(value) ? value[0] : value;
-}
-
 export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   const router = Router();
 
@@ -161,12 +157,7 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   });
 
   router.delete("/:tweetId", auth.requireAuth, async (request, response) => {
-    const tweetId = getRouteParam(request.params.tweetId);
-    if (!tweetId) {
-      response.status(400).json({ message: "Tweet id is required." });
-      return;
-    }
-
+    const tweetId = request.params.tweetId as string;
     const tweet = await prisma.tweet.findUnique({
       where: { id: tweetId },
       select: { id: true, authorId: true }
@@ -190,12 +181,7 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   });
 
   router.post("/:tweetId/like", auth.requireAuth, async (request, response) => {
-    const tweetId = getRouteParam(request.params.tweetId);
-    if (!tweetId) {
-      response.status(400).json({ message: "Tweet id is required." });
-      return;
-    }
-
+    const tweetId = request.params.tweetId as string;
     const tweet = await prisma.tweet.findUnique({
       where: { id: tweetId },
       select: { id: true }
@@ -244,12 +230,7 @@ export function tweetsRouter({ prisma, auth }: TweetsRouterOptions) {
   });
 
   router.delete("/:tweetId/like", auth.requireAuth, async (request, response) => {
-    const tweetId = getRouteParam(request.params.tweetId);
-    if (!tweetId) {
-      response.status(400).json({ message: "Tweet id is required." });
-      return;
-    }
-
+    const tweetId = request.params.tweetId as string;
     const tweet = await prisma.tweet.findUnique({
       where: { id: tweetId },
       select: { id: true }

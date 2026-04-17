@@ -1,5 +1,6 @@
 import { Router } from "express";
 import type { PrismaClient } from "@prisma/client";
+import { z } from "zod";
 import type { createAuthMiddleware } from "../services/auth.js";
 import { updateProfileSchema } from "../services/auth.js";
 import { serializeUser } from "../utils/auth-response.js";
@@ -12,6 +13,9 @@ type UsersRouterOptions = {
 
 export function usersRouter({ prisma, auth }: UsersRouterOptions) {
   const router = Router();
+  const searchUsersSchema = z.object({
+    q: z.string().trim().max(50).default("")
+  });
 
   function isUniqueConstraintError(error: unknown) {
     return typeof error === "object" && error !== null && "code" in error && error.code === "P2002";
@@ -49,6 +53,61 @@ export function usersRouter({ prisma, auth }: UsersRouterOptions) {
       orderBy: {
         createdAt: "desc"
       }
+    });
+
+    response.json({
+      users: users.map((user) => serializeSocialUser(user, user.followers.length > 0))
+    });
+  });
+
+  router.get("/search", auth.requireAuth, async (request, response) => {
+    const query = searchUsersSchema.parse(request.query);
+    const currentUserId = request.currentUser!.id;
+
+    if (!query.q) {
+      response.json({ users: [] });
+      return;
+    }
+
+    const normalizedQuery = query.q.toLowerCase();
+    const users = await prisma.user.findMany({
+      where: {
+        id: {
+          not: currentUserId
+        },
+        OR: [
+          {
+            username: {
+              contains: normalizedQuery
+            }
+          },
+          {
+            displayName: {
+              contains: query.q
+            }
+          }
+        ]
+      },
+      include: {
+        _count: {
+          select: {
+            followers: true,
+            following: true
+          }
+        },
+        followers: {
+          where: {
+            followerId: currentUserId
+          },
+          select: {
+            followerId: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: "desc"
+      },
+      take: 10
     });
 
     response.json({

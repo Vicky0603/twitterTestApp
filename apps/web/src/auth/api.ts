@@ -146,6 +146,10 @@ export function getMyNetwork() {
   return apiRequest<NetworkResponse>("/api/users/me/network");
 }
 
+export function searchUsers(query: string) {
+  return apiRequest<{ users: SocialUser[] }>(`/api/users/search?q=${encodeURIComponent(query)}`);
+}
+
 export function followUser(username: string) {
   return apiRequest<{ user: SocialUser }>(`/api/users/${encodeURIComponent(username)}/follow`, {
     method: "POST"
