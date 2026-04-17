@@ -6,13 +6,48 @@ type ApiRequestOptions = Omit<RequestInit, "body"> & {
 
 export async function apiRequest<T>(path: string, options: ApiRequestOptions = {}) {
   const requestInit: RequestInit = {
-    ...options,
     credentials: "include",
     headers: {
       "Content-Type": "application/json",
       ...(options.headers ?? {})
     }
   };
+
+  if (options.method !== undefined) {
+    requestInit.method = options.method;
+  }
+
+  if (options.mode !== undefined) {
+    requestInit.mode = options.mode;
+  }
+
+  if (options.cache !== undefined) {
+    requestInit.cache = options.cache;
+  }
+
+  if (options.redirect !== undefined) {
+    requestInit.redirect = options.redirect;
+  }
+
+  if (options.referrer !== undefined) {
+    requestInit.referrer = options.referrer;
+  }
+
+  if (options.referrerPolicy !== undefined) {
+    requestInit.referrerPolicy = options.referrerPolicy;
+  }
+
+  if (options.integrity !== undefined) {
+    requestInit.integrity = options.integrity;
+  }
+
+  if (options.keepalive !== undefined) {
+    requestInit.keepalive = options.keepalive;
+  }
+
+  if (options.signal !== undefined) {
+    requestInit.signal = options.signal;
+  }
 
   if (options.body !== undefined) {
     requestInit.body = JSON.stringify(options.body);
@@ -30,4 +65,45 @@ export async function apiRequest<T>(path: string, options: ApiRequestOptions = {
   }
 
   return (await response.json()) as T;
+}
+
+export type TimelineAuthor = {
+  id: string;
+  username: string;
+  displayName: string;
+  avatarUrl: string | null;
+};
+
+export type TimelineTweet = {
+  id: string;
+  content: string;
+  createdAt: string;
+  updatedAt: string;
+  author: TimelineAuthor;
+};
+
+export type TimelineResponse = {
+  tweets: TimelineTweet[];
+  pageInfo: {
+    nextCursor: string | null;
+    hasMore: boolean;
+  };
+};
+
+export function getTimeline(cursor?: string | null) {
+  const query = cursor ? `?cursor=${encodeURIComponent(cursor)}` : "";
+  return apiRequest<TimelineResponse>(`/api/tweets/timeline${query}`);
+}
+
+export function createTweet(input: { content: string }) {
+  return apiRequest<{ tweet: TimelineTweet }>("/api/tweets", {
+    method: "POST",
+    body: input
+  });
+}
+
+export function deleteTweet(tweetId: string) {
+  return apiRequest<null>(`/api/tweets/${tweetId}`, {
+    method: "DELETE"
+  });
 }
